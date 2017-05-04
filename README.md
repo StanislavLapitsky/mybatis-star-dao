@@ -95,7 +95,7 @@ public class App {
         InputStream inputStream = App.class.getResourceAsStream("/org/mybatis/mybatis-config.xml");
         SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
         SqlSession session = sqlSessionFactory.openSession();
-        initDB(session.getConnection());
+        //initDB(session.getConnection());
 
         User user = new User(u -> {
             u.setLogin("login2");
