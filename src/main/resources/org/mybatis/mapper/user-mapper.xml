@@ -34,20 +34,26 @@
     <update id="update" keyProperty="id" keyColumn="ID">
         UPDATE USERS
         SET
-        <foreach collection="columnsResultMappings" item="entry" separator=",">
-            ${entry.column} = #{entity.${entry.property}}
+        <foreach collection="resultMappings" item="entry" separator=",">
+            <if test="!entry.isId">
+                ${entry.column} = #{entity.${entry.property}}
+            </if>
         </foreach>
         WHERE
-        <foreach collection="idsResultMappings" item="entry" separator=" AND ">
-            ${entry.column} = #{entity.${entry.property}}
+        <foreach collection="resultMappings" item="entry" separator=" AND ">
+            <if test="entry.isId">
+                ${entry.column} = #{entity.${entry.property}}
+            </if>
         </foreach>
     </update>
 
     <delete id="delete">
         DELETE FROM USERS
         WHERE
-        <foreach collection="idsResultMappings" item="entry" separator=" AND ">
-            ${entry.column} = #{entity.${entry.property}}
+        <foreach collection="resultMappings" item="entry" separator=" AND ">
+            <if test="entry.isId">
+                ${entry.column} = #{entity.${entry.property}}
+            </if>
         </foreach>
     </delete>
 </mapper>

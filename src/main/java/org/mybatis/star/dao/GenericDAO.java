@@ -3,13 +3,11 @@ package org.mybatis.star.dao;
 import org.apache.ibatis.mapping.ResultFlag;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
-import org.apache.ibatis.reflection.MetaObject;
 import org.apache.ibatis.session.SqlSession;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * The main class which can handle common CRUD operations. It wraps actual entity with DAOWrapper
@@ -120,40 +118,46 @@ public abstract class GenericDAO<T, PK> {
     public class DAOWrapper {
         //CRUD entity
         private T entity;
-        //non ID columns mappings
-        private List<ResultMapping> columnsResultMappings = new ArrayList<>();
-        //ID columns mappings
-        private List<ResultMapping> idsResultMappings = new ArrayList<>();
+        //Wrappers for ResultMapping. Need to introduce getIsId() method
+        private List<ResultMappingWrapper> resultMappings = new ArrayList<>();
 
         private DAOWrapper(T entity) {
             this.entity = entity;
-            init();
-        }
-
-        private void init() {
-            for (ResultMapping mapping : resultMappings) {
-                if (mapping.getFlags().contains(ResultFlag.ID)) {
-                    idsResultMappings.add(mapping);
-                } else {
-                    columnsResultMappings.add(mapping);
-                }
-            }
-        }
+            resultMappings = GenericDAO.this.resultMappings.stream()
+                    .map(item -> new ResultMappingWrapper(item))
+                    .collect(Collectors.toList());        }
 
         public T getEntity() {
             return entity;
         }
 
-        public List<ResultMapping> getResultMappings() {
+        public List<ResultMappingWrapper> getResultMappings() {
             return resultMappings;
         }
 
-        public List<ResultMapping> getColumnsResultMappings() {
-            return columnsResultMappings;
+    }
+
+    /**
+     * Wrapper class for ResultMapping. Need to introduce getIsId() method.
+     * The rest is just delegated to actual ResultMapping
+     */
+    public static class ResultMappingWrapper {
+        private ResultMapping source;
+
+        private ResultMappingWrapper(ResultMapping source) {
+            this.source = source;
         }
 
-        public List<ResultMapping> getIdsResultMappings() {
-            return idsResultMappings;
+        public String getProperty() {
+            return source.getProperty();
+        }
+
+        public String getColumn() {
+            return source.getColumn();
+        }
+
+        public boolean getIsId() {
+            return source.getFlags().contains(ResultFlag.ID);
         }
     }
 }
