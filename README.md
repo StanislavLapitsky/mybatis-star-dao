@@ -1,10 +1,11 @@
 # MyBatis-star-dao
-MyBatis generic CRUD DAO based on ResultMapping only.
+MyBatis generic CRUD DAO based on ResultMapping only. Could be useful 
+when DB structure is actively changed e.g. on project start.
 
 ## Introduction
 MyBatis is a great ORM flexible and powerful but the flexibility requires 
-additional efforts. Normally you define mapping and define CRUD operations in the 
-mapping INSERT/UPDATE/DELETE statements. <br />
+additional efforts. Normally you define mapping and define CRUD operations 
+in the mapping INSERT/UPDATE/DELETE statements. <br />
 INSERT and UPDATE normally looks like this:
 ```
 <insert id="insert">
@@ -31,5 +32,3 @@ one more:).
 With the Generic DAO extension no need to manually add new column to 
 INSERT and UPDATE statements. It is enough to define property/column 
 mapping and INSERT/UPDATE statements get the new property on fly.<br />
-Could be useful when DB structure is actively changed e.g. on project 
-start.
