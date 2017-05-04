@@ -20,6 +20,7 @@
     </environments>
 
     <mappers>
+        <mapper resource="org/mybatis/mapper/base-mapper.xml"/>
         <mapper resource="org/mybatis/mapper/user-mapper.xml"/>
     </mappers>
 </configuration>

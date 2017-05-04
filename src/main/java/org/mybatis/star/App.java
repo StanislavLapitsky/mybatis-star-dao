@@ -39,6 +39,9 @@ public class App {
         int updatedCount = dao.update(user);
         System.out.println("updatedCount=" + updatedCount);
 
+        int deletedCount = dao.delete(user);
+        System.out.println("deletedCount=" + deletedCount);
+
         List<User> users = dao.getAll();
         System.out.println(users);
     }

@@ -3,6 +3,7 @@ package org.mybatis.star.dao;
 import org.apache.ibatis.mapping.ResultFlag;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
+import org.apache.ibatis.session.Configuration;
 import org.apache.ibatis.session.SqlSession;
 
 import java.util.ArrayList;
@@ -17,15 +18,19 @@ import java.util.stream.Collectors;
  */
 public abstract class GenericDAO<T, PK> {
     //mapping key "insert" must be defined in mapping file
-    public static final String MAPPING_INSERT = ".insert";
+    public static final String MAPPING_INSERT = "insert";
     //mapping key "update" must be defined in mapping file
-    public static final String MAPPING_UPDATE = ".update";
+    public static final String MAPPING_UPDATE = "update";
     //mapping key "delete" must be defined in mapping file
-    public static final String MAPPING_DELETE = ".delete";
+    public static final String MAPPING_DELETE = "delete";
     //mapping key "selectAll" must be defined in mapping file
-    public static final String MAPPING_SELECT_ALL = ".selectAll";
+    public static final String MAPPING_SELECT_ALL = "selectAll";
     //mapping key "selectById" must be defined in mapping file
-    public static final String MAPPING_SELECT_BY_ID = ".selectById";
+    public static final String MAPPING_SELECT_BY_ID = "selectById";
+    //mapping key "selectById" must be defined in mapping file
+    public static final String SQL_FRAGMENT_TABLE_NAME = "TableName";
+    public static final String GENERIC_DAO_CACHE_NAME = "GenericDAO.";
+    public static final String DEFAULT_RESULT_MAP = "defaultResultMap";
 
     //MyBatis session
     private SqlSession session;
@@ -35,6 +40,7 @@ public abstract class GenericDAO<T, PK> {
     private String defaultResultMapName;
     //resultmap metadata
     private List<ResultMapping> resultMappings;
+    private String tableName;
 
     /**
      * Creates a new DAO instance with the session, mapping and default result map
@@ -42,7 +48,7 @@ public abstract class GenericDAO<T, PK> {
      * @param mappingName mapping name
      */
     public GenericDAO(SqlSession session, String mappingName) {
-        this(session, mappingName, mappingName);
+        this(session, mappingName, DEFAULT_RESULT_MAP);
     }
 
     /**
@@ -62,7 +68,9 @@ public abstract class GenericDAO<T, PK> {
      * Gets result map metadata for the mapping and stores it to be used in the CRUD calls
      */
     private void initMappings() {
-        ResultMap resultMap = session.getConfiguration().getResultMap(mappingName + "." + defaultResultMapName);
+        Configuration conf = session.getConfiguration();
+        ResultMap resultMap = conf.getResultMap(mappingName + "." + defaultResultMapName);
+        this.tableName = conf.getSqlFragments().get(mappingName + "." + SQL_FRAGMENT_TABLE_NAME).getStringBody();
         this.resultMappings = resultMap.getResultMappings();
     }
 
@@ -72,7 +80,7 @@ public abstract class GenericDAO<T, PK> {
      * @return inserted rows count
      */
     public int insert(T entity) {
-        return session.insert(mappingName + MAPPING_INSERT, new DAOWrapper(entity));
+        return session.insert(GENERIC_DAO_CACHE_NAME + MAPPING_INSERT, new DAOWrapper(entity));
     }
 
     /**
@@ -81,7 +89,7 @@ public abstract class GenericDAO<T, PK> {
      * @return updated rows count
      */
     public int update(T entity) {
-        return session.update(mappingName + MAPPING_UPDATE, new DAOWrapper(entity));
+        return session.update(GENERIC_DAO_CACHE_NAME + MAPPING_UPDATE, new DAOWrapper(entity));
     }
 
     /**
@@ -90,7 +98,7 @@ public abstract class GenericDAO<T, PK> {
      * @return deleted rows count
      */
     public int delete(T entity) {
-        return session.delete(mappingName + MAPPING_DELETE, new DAOWrapper(entity));
+        return session.delete(GENERIC_DAO_CACHE_NAME + MAPPING_DELETE, new DAOWrapper(entity));
     }
 
     /**
@@ -98,7 +106,7 @@ public abstract class GenericDAO<T, PK> {
      * @return list
      */
     public List<T> getAll() {
-        return session.selectList(mappingName + MAPPING_SELECT_ALL);
+        return session.selectList(mappingName + "."  + MAPPING_SELECT_ALL, new DAOWrapper(null));
     }
 
     /**
@@ -107,7 +115,7 @@ public abstract class GenericDAO<T, PK> {
      * @return entity
      */
     public T getById(PK pk) {
-        return session.selectOne(mappingName + MAPPING_SELECT_BY_ID, pk);
+        return session.selectOne(mappingName + "." +  MAPPING_SELECT_BY_ID, new DAOWrapper(pk));
     }
 
     /**
@@ -117,18 +125,22 @@ public abstract class GenericDAO<T, PK> {
      */
     public class DAOWrapper {
         //CRUD entity
-        private T entity;
+        private Object entity;
         //Wrappers for ResultMapping. Need to introduce getIsId() method
         private List<ResultMappingWrapper> resultMappings = new ArrayList<>();
 
-        private DAOWrapper(T entity) {
+        private DAOWrapper(Object entity) {
             this.entity = entity;
             resultMappings = GenericDAO.this.resultMappings.stream()
                     .map(item -> new ResultMappingWrapper(item))
                     .collect(Collectors.toList());        }
 
-        public T getEntity() {
+        public Object getEntity() {
             return entity;
+        }
+
+        public String getTableName() {
+            return tableName;
         }
 
         public List<ResultMappingWrapper> getResultMappings() {

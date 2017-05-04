@@ -50,53 +50,74 @@ public class User {
 and now we need a mapping for the class. The mapping is almost the same for all entities (see below).
 ```xml
 <mapper namespace="User">
-    <resultMap id="User" type="User">
+
+    <!--a reference to parent base-mapper.xml where CRUD logic mapping is done-->
+    <cache-ref namespace="GenericDAO" />
+
+    <resultMap id="defaultResultMap" type="User">
         <id property="id" column="ID"/>
         <result property="login" column="LOGIN"/>
         <result property="email" column="EMAIL"/>
     </resultMap>
 
-    <insert id="insert" keyProperty="entity.id" keyColumn="ID" useGeneratedKeys="true">
-        INSERT INTO USERS
-        <!--(ID, LOGIN, EMAIL)-->
-        <foreach collection="resultMappings" item="entry" separator="," open="(" close=")">
-            ${entry.column}
-        </foreach>
-        VALUES
-        <!--(#{id}, #{login}, #{email})-->
-        <foreach collection="resultMappings" item="entry" separator="," open="(" close=")">
-            #{entity.${entry.property}}
-        </foreach>
-    </insert>
+    <!--customize DB table name there to be used in CRUD-->
+    <sql id="TableName">USERS</sql>
 
-    <update id="update" keyProperty="id" keyColumn="ID">
-        UPDATE USERS
-        SET
-        <foreach collection="resultMappings" item="entry" separator=",">
-            <if test="!entry.isId">
-                ${entry.column} = #{entity.${entry.property}}
-            </if>
-        </foreach>
-        WHERE
-        <foreach collection="resultMappings" item="entry" separator=" AND ">
-            <if test="entry.isId">
-                ${entry.column} = #{entity.${entry.property}}
-            </if>
-        </foreach>
-    </update>
-    ...
+    <!--we cannot move selectAll to base-mapper.xml because User.defaultResultMap is not available there-->
+    <select id="selectAll" resultMap="defaultResultMap">
+        SELECT * FROM ${tableName}
+    </select>
+
+    <!--we cannot move selectById to base-mapper.xml because User.defaultResultMap is not available there-->
+    <select id="selectById" resultMap="defaultResultMap">
+        SELECT * FROM ${tableName}
+        WHERE ID=#{entity}
+    </select>
+
 </mapper>
 ```
-If you look at the **<insert>** and **<update>** statement you can see that no 
-field and column names are used. The names are automatically resolved from the 
-**<resultMap>**. If a new column/propery is added we just adapt the resultMap 
-and the field's value is inserted/updated on fly.<br />
-The UserDAO is added and all the CRUD methods are available.
+The mapping needs to define two things - table name sql and defaultResultMap where 
+POJO properties and DB table columns are mapped. <br />
+The last step is to define UserDAO class and all the CRUD operations are available.
 ```java
 public class UserDao extends GenericDAO<User, Long> {
 
-    public UserDao(SqlSession session, String mappingName) {
+    public UserDao(org.apache.ibatis.session.SqlSession session, String mappingName) {
         super(session, mappingName);
+    }
+}
+```
+The dao can be used this way (See also UserDaoTest).
+```java
+public class App {
+
+    public static void main(String[] args) {
+        InputStream inputStream = App.class.getResourceAsStream("/org/mybatis/mybatis-config.xml");
+        SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
+        SqlSession session = sqlSessionFactory.openSession();
+        initDB(session.getConnection());
+
+        User user = new User(u -> {
+            u.setLogin("login2");
+            u.setEmail("login2@test.test");
+        });
+
+        UserDao dao = new UserDao(session, "User");
+        int insertedCount = dao.insert(user);
+        System.out.println("insertedCount=" + insertedCount);
+
+        user = dao.getById(user.getId());
+
+        user.setLogin("UPD:login2");
+        user.setEmail("UPD:login2@test.test");
+        int updatedCount = dao.update(user);
+        System.out.println("updatedCount=" + updatedCount);
+
+        int deletedCount = dao.delete(user);
+        System.out.println("deletedCount=" + deletedCount);
+
+        List<User> users = dao.getAll();
+        System.out.println(users);
     }
 }
 ```
