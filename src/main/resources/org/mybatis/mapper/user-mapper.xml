@@ -9,15 +9,6 @@
         <result property="email" column="EMAIL"/>
     </resultMap>
 
-    <select id="selectAll" resultMap="User">
-        SELECT * FROM USERS
-    </select>
-
-    <select id="selectById" resultMap="User">
-        SELECT * FROM USERS
-        WHERE ID=#{id}
-    </select>
-
     <insert id="insert" keyProperty="entity.id" keyColumn="ID" useGeneratedKeys="true">
         INSERT INTO USERS
         <!--(ID, LOGIN, EMAIL)-->
@@ -56,4 +47,14 @@
             </if>
         </foreach>
     </delete>
+
+    <select id="selectAll" resultMap="User">
+        SELECT * FROM USERS
+    </select>
+
+    <select id="selectById" resultMap="User">
+        SELECT * FROM USERS
+        WHERE ID=#{id}
+    </select>
+
 </mapper>
