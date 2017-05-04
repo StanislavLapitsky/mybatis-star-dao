@@ -1,0 +1,6 @@
+CREATE TABLE USERS(
+   ID int(10) NOT NULL AUTO_INCREMENT,
+   LOGIN varchar(100) NOT NULL,
+   EMAIL varchar(255),
+   PRIMARY KEY ( ID )
+);
