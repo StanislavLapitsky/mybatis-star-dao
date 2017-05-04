@@ -26,8 +26,8 @@
         </foreach>
         VALUES
         <!--(#{id}, #{login}, #{email})-->
-        <foreach collection="valuesMap.entrySet()" index="key" item="entry" separator="," open="(" close=")">
-            #{entry}
+        <foreach collection="resultMappings" item="entry" separator="," open="(" close=")">
+            #{entity.${entry.property}}
         </foreach>
     </insert>
 

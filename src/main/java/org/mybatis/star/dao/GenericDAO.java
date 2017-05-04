@@ -115,17 +115,11 @@ public abstract class GenericDAO<T, PK> {
     /**
      * The class wraps original entity and provides necessary method for common using.
      * It keeps entity itself (e.g. we set the entity ID after insert)
-     * Values map - for each property defined in the result map we create a pair
-     * Key the property name, value is actual value from entity's field.
-     * from the result map we get and store list of columns and ID columns.
+     * store list of columns and ID columns.
      */
     public class DAOWrapper {
         //CRUD entity
         private T entity;
-        /* Values map - for each property defined in the result map we create a pair
-        * Key the property name, value is actual value from entity's field.
-        */
-        private Map<String, Object> valuesMap;
         //non ID columns mappings
         private List<ResultMapping> columnsResultMappings = new ArrayList<>();
         //ID columns mappings
@@ -137,26 +131,17 @@ public abstract class GenericDAO<T, PK> {
         }
 
         private void init() {
-            valuesMap = new LinkedHashMap<>();
-            MetaObject metaObject = session.getConfiguration().newMetaObject(entity);
             for (ResultMapping mapping : resultMappings) {
                 if (mapping.getFlags().contains(ResultFlag.ID)) {
                     idsResultMappings.add(mapping);
                 } else {
                     columnsResultMappings.add(mapping);
                 }
-                String property = mapping.getProperty();
-                Object value = metaObject.getValue(property);
-                valuesMap.put(property, value);
             }
         }
 
         public T getEntity() {
             return entity;
-        }
-
-        public Map<String, Object> getValuesMap() {
-            return valuesMap;
         }
 
         public List<ResultMapping> getResultMappings() {
