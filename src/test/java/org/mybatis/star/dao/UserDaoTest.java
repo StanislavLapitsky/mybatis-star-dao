@@ -15,6 +15,7 @@ import java.sql.Statement;
 import java.util.List;
 
 /**
+ * Tests basic CRUD operations for UserDao extending GenericDAO
  * @author stanislav.lapitsky created 5/4/2017.
  */
 public class UserDaoTest {

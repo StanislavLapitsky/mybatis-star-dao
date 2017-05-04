@@ -12,6 +12,7 @@ import java.sql.Statement;
 import java.util.List;
 
 /**
+ * Just test application. Used for debug only.
  * @author stanislav.lapitsky created 5/3/2017.
  */
 public class App {

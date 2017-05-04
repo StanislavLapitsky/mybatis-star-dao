@@ -3,6 +3,7 @@ package org.mybatis.star.entity;
 import java.util.function.Consumer;
 
 /**
+ * A Simple entity (POJO) to illustrate how it works
  * @author stanislav.lapitsky created 5/3/2017.
  */
 public class User {
