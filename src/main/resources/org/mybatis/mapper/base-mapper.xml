@@ -7,12 +7,10 @@
 
     <insert id="insert" keyProperty="entity.id" keyColumn="ID" useGeneratedKeys="true">
         INSERT INTO ${tableName}
-        <!--(ID, LOGIN, EMAIL)-->
         <foreach collection="resultMappings" item="entry" separator="," open="(" close=")">
             ${entry.column}
         </foreach>
         VALUES
-        <!--(#{id}, #{login}, #{email})-->
         <foreach collection="resultMappings" item="entry" separator="," open="(" close=")">
             #{entity.${entry.property}}
         </foreach>
