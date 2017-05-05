@@ -7,6 +7,7 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import org.mybatis.star.App;
+import org.mybatis.star.entity.City;
 import org.mybatis.star.entity.User;
 
 import java.io.InputStream;
@@ -20,7 +21,8 @@ import java.util.List;
  */
 public class UserDaoTest {
 
-    private static UserDao dao;
+    private static UserDao userDao;
+    private static CityDao cityDao;
 
     private static String convertStreamToString(InputStream is) {
         java.util.Scanner s = new java.util.Scanner(is).useDelimiter("\\A");
@@ -29,13 +31,14 @@ public class UserDaoTest {
 
     @Before
     public void setup() {
-        if (dao == null) {
+        if (userDao == null) {
             InputStream inputStream = App.class.getResourceAsStream("/org/mybatis/mybatis-config.xml");
             SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream);
             SqlSession session = sqlSessionFactory.openSession();
             initDB(session.getConnection());
 
-            dao = new UserDao(session, "User");
+            userDao = new UserDao(session, "User");
+            cityDao = new CityDao(session, "City");
         }
     }
 
@@ -58,7 +61,7 @@ public class UserDaoTest {
             u.setEmail("test@some-test.test");
         });
 
-        User userFromDB = dao.getById(1L);
+        User userFromDB = userDao.getById(1L);
         Assert.assertEquals(1L, (long) userFromDB.getId());
         Assert.assertEquals(user.getLogin(), userFromDB.getLogin());
         Assert.assertEquals(user.getEmail(), userFromDB.getEmail());
@@ -66,12 +69,7 @@ public class UserDaoTest {
 
     @Test
     public void testGetAll() {
-        User user = new User(u -> {
-            u.setLogin("test");
-            u.setEmail("test@some-test.test");
-        });
-
-        List<User> all = dao.getAll();
+        List<User> all = userDao.getAll();
         Assert.assertTrue(all.size() >= 1);
     }
 
@@ -82,7 +80,7 @@ public class UserDaoTest {
             u.setEmail("login2@test.test");
         });
 
-        int insertedCount = dao.insert(user);
+        int insertedCount = userDao.insert(user);
         Assert.assertEquals(1, insertedCount);
     }
 
@@ -93,16 +91,16 @@ public class UserDaoTest {
             u.setEmail("test2@some-test.test");
         });
 
-        int insertedCount = dao.insert(user);
+        int insertedCount = userDao.insert(user);
         Assert.assertEquals(1, insertedCount);
 
         user.setLogin("UPDATE:" + user.getLogin());
         user.setEmail("UPDATE:" + user.getEmail());
 
-        int updatedCount = dao.update(user);
+        int updatedCount = userDao.update(user);
         Assert.assertEquals(1, updatedCount);
 
-        User userFromDB = dao.getById(user.getId());
+        User userFromDB = userDao.getById(user.getId());
         Assert.assertEquals(user.getId(), userFromDB.getId());
         Assert.assertEquals(user.getLogin(), userFromDB.getLogin());
         Assert.assertEquals(user.getEmail(), userFromDB.getEmail());
@@ -115,13 +113,47 @@ public class UserDaoTest {
             u.setEmail("test3@some-test.test");
         });
 
-        int insertedCount = dao.insert(user);
+        int insertedCount = userDao.insert(user);
         Assert.assertEquals(1, insertedCount);
 
-        int deletedCount = dao.delete(user);
+        int deletedCount = userDao.delete(user);
         Assert.assertEquals(1, deletedCount);
 
-        User userFromDB = dao.getById(user.getId());
+        User userFromDB = userDao.getById(user.getId());
         Assert.assertNull(userFromDB);
     }
+
+    @Test
+    public void testWorkWithAssociation() {
+        City c1 = new City(c -> {
+            c.setName("Minsk");
+        });
+        City c2 = new City(c -> {
+            c.setName("London");
+        });
+        cityDao.insert(c1);
+        cityDao.insert(c2);
+        User user = new User(u -> {
+            u.setLogin("test4");
+            u.setEmail("test4@some-test.test");
+            u.setCity(c1);
+        });
+
+        int insertedCount = userDao.insert(user);
+        Assert.assertEquals(1, insertedCount);
+
+        user.setLogin("UPDATE:" + user.getLogin());
+        user.setEmail("UPDATE:" + user.getEmail());
+        user.setCity(c2);
+
+        int updatedCount = userDao.update(user);
+        Assert.assertEquals(1, updatedCount);
+
+        User userFromDB = userDao.getById(user.getId());
+        Assert.assertEquals(user.getId(), userFromDB.getId());
+        Assert.assertEquals(user.getLogin(), userFromDB.getLogin());
+        Assert.assertEquals(user.getEmail(), userFromDB.getEmail());
+        Assert.assertEquals(user.getCity().getName(), c2.getName());
+    }
+
 }

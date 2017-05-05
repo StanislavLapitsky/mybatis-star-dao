@@ -10,6 +10,7 @@ public class User {
     private Long id;
     private String login;
     private String email;
+    private City city;
 
     public User() {
     }
@@ -48,8 +49,16 @@ public class User {
         sb.append("id=").append(id);
         sb.append(", login='").append(login).append('\'');
         sb.append(", email='").append(email).append('\'');
+        sb.append(", city='").append(city).append('\'');
         sb.append('}');
         return sb.toString();
     }
 
+    public City getCity() {
+        return city;
+    }
+
+    public void setCity(City city) {
+        this.city = city;
+    }
 }

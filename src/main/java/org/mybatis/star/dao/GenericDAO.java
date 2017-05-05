@@ -1,5 +1,6 @@
 package org.mybatis.star.dao;
 
+import org.apache.ibatis.mapping.MappedStatement;
 import org.apache.ibatis.mapping.ResultFlag;
 import org.apache.ibatis.mapping.ResultMap;
 import org.apache.ibatis.mapping.ResultMapping;
@@ -38,8 +39,9 @@ public abstract class GenericDAO<T, PK> {
     private String mappingName;
     //resultmap id from mapping e.g. User from <resultMap id="User"> by default it has the same name as mappingName
     private String defaultResultMapName;
-    //resultmap metadata
-    private List<ResultMapping> resultMappings;
+    //Wrappers for ResultMapping. Need to introduce getIsId() method
+    private List<ResultMappingWrapper> resultMappings;
+
     private String tableName;
 
     /**
@@ -71,7 +73,9 @@ public abstract class GenericDAO<T, PK> {
         Configuration conf = session.getConfiguration();
         ResultMap resultMap = conf.getResultMap(mappingName + "." + defaultResultMapName);
         this.tableName = conf.getSqlFragments().get(mappingName + "." + SQL_FRAGMENT_TABLE_NAME).getStringBody();
-        this.resultMappings = resultMap.getResultMappings();
+        this.resultMappings = resultMap.getResultMappings().stream()
+                .map(item -> new ResultMappingWrapper(item, conf))
+                .collect(Collectors.toList());
     }
 
     /**
@@ -126,14 +130,10 @@ public abstract class GenericDAO<T, PK> {
     public class DAOWrapper {
         //CRUD entity
         private Object entity;
-        //Wrappers for ResultMapping. Need to introduce getIsId() method
-        private List<ResultMappingWrapper> resultMappings = new ArrayList<>();
 
         private DAOWrapper(Object entity) {
             this.entity = entity;
-            resultMappings = GenericDAO.this.resultMappings.stream()
-                    .map(item -> new ResultMappingWrapper(item))
-                    .collect(Collectors.toList());        }
+        }
 
         public Object getEntity() {
             return entity;
@@ -155,13 +155,19 @@ public abstract class GenericDAO<T, PK> {
      */
     public static class ResultMappingWrapper {
         private ResultMapping source;
+        private String nestedProperty;
 
-        private ResultMappingWrapper(ResultMapping source) {
+        private ResultMappingWrapper(ResultMapping source, Configuration conf) {
             this.source = source;
+            if (source.getNestedQueryId() != null) {
+                MappedStatement statement = conf.getMappedStatement(source.getNestedQueryId());
+                ResultMap nestedResultMap = conf.getResultMap(statement.getResultMaps().get(0).getId());
+                nestedProperty = source.getProperty() + "." + nestedResultMap.getIdResultMappings().get(0).getProperty();
+            }
         }
 
         public String getProperty() {
-            return source.getProperty();
+            return nestedProperty != null ? nestedProperty : source.getProperty();
         }
 
         public String getColumn() {
@@ -171,5 +177,6 @@ public abstract class GenericDAO<T, PK> {
         public boolean getIsId() {
             return source.getFlags().contains(ResultFlag.ID);
         }
+
     }
 }

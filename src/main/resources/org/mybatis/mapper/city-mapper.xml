@@ -2,31 +2,29 @@
 <!DOCTYPE mapper
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="User">
+<mapper namespace="City">
 
     <!--a reference to parent base-mapper.xml where CRUD logic mapping is done-->
     <cache-ref namespace="GenericDAO" />
 
     <!--custom result mapping properties/columns for the POJO/table-->
-    <resultMap id="defaultResultMap" type="User">
-        <id property="id" column="USER_ID"/>
-        <result property="login" column="LOGIN"/>
-        <result property="email" column="EMAIL"/>
-        <association property="city" column="CITY_ID" javaType="City" select="City.selectById" />
+    <resultMap id="defaultResultMap" type="City">
+        <id property="id" column="CITY_ID"/>
+        <result property="name" column="NAME"/>
     </resultMap>
 
     <!--customize DB table name there to be used in CRUD-->
-    <sql id="TableName">USERS</sql>
+    <sql id="TableName">CITY</sql>
 
     <!--we cannot move selectAll to base-mapper.xml because User.defaultResultMap is not available there-->
     <select id="selectAll" resultMap="defaultResultMap">
-        SELECT * FROM USERS
+        SELECT * FROM CITY
     </select>
 
     <!--we cannot move selectById to base-mapper.xml because User.defaultResultMap is not available there-->
     <select id="selectById" resultMap="defaultResultMap">
-        SELECT * FROM USERS
-        WHERE USER_ID=#{entity}
+        SELECT * FROM CITY
+        WHERE CITY_ID=#{entity}
     </select>
 
 </mapper>

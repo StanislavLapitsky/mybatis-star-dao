@@ -3,7 +3,9 @@ package org.mybatis.star;
 import org.apache.ibatis.session.SqlSession;
 import org.apache.ibatis.session.SqlSessionFactory;
 import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+import org.mybatis.star.dao.CityDao;
 import org.mybatis.star.dao.UserDao;
+import org.mybatis.star.entity.City;
 import org.mybatis.star.entity.User;
 
 import java.io.InputStream;
@@ -23,26 +25,34 @@ public class App {
         SqlSession session = sqlSessionFactory.openSession();
         initDB(session.getConnection());
 
+        City city = new City(c -> {
+            c.setName("Minsk");
+        });
+        CityDao cityDao = new CityDao(session, "City");
+        cityDao.insert(city);
+        List<City> cities = cityDao.getAll();
+
         User user = new User(u -> {
             u.setLogin("login2");
             u.setEmail("login2@test.test");
+            u.setCity(city);
         });
 
-        UserDao dao = new UserDao(session, "User");
-        int insertedCount = dao.insert(user);
+        UserDao userDao = new UserDao(session, "User");
+        int insertedCount = userDao.insert(user);
         System.out.println("insertedCount=" + insertedCount);
 
-        user = dao.getById(user.getId());
+        user = userDao.getById(user.getId());
 
         user.setLogin("UPD:login2");
         user.setEmail("UPD:login2@test.test");
-        int updatedCount = dao.update(user);
+        int updatedCount = userDao.update(user);
         System.out.println("updatedCount=" + updatedCount);
 
-        int deletedCount = dao.delete(user);
-        System.out.println("deletedCount=" + deletedCount);
+//        int deletedCount = userDao.delete(user);
+//        System.out.println("deletedCount=" + deletedCount);
 
-        List<User> users = dao.getAll();
+        List<User> users = userDao.getAll();
         System.out.println(users);
     }
 

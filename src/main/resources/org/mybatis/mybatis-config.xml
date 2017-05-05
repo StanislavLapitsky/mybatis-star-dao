@@ -5,6 +5,7 @@
 <configuration>
     <typeAliases>
         <typeAlias alias="User" type="org.mybatis.star.entity.User"/>
+        <typeAlias alias="City" type="org.mybatis.star.entity.City"/>
     </typeAliases>
 
     <environments default="development">
@@ -21,6 +22,7 @@
 
     <mappers>
         <mapper resource="org/mybatis/mapper/base-mapper.xml"/>
+        <mapper resource="org/mybatis/mapper/city-mapper.xml"/>
         <mapper resource="org/mybatis/mapper/user-mapper.xml"/>
     </mappers>
 </configuration>

@@ -10,13 +10,13 @@ INSERT and UPDATE normally looks like this:
 ```xml
 <insert id="insert">
   INSERT INTO USERS (ID, LOGIN, EMAIL, ...)
-  VALUES (#{id},#{login},#{email}, ...)
+  VALUES (#{id},#{name},#{email}, ...)
 </insert>
 ```
 ```xml
 <update id="update">
   UPDATE USER SET
-    LOGIN = #{login},
+    LOGIN = #{name},
     EMAIL = #{email},
     ...
   WHERE ID = #{id}
@@ -41,7 +41,7 @@ is a simple one with getters/setters.
 ```java
 public class User {
     private Long id;
-    private String login;
+    private String name;
     private String email;
 
     //getters/setters there
@@ -56,7 +56,7 @@ and now we need a mapping for the class. The mapping is almost the same for all 
 
     <resultMap id="defaultResultMap" type="User">
         <id property="id" column="ID"/>
-        <result property="login" column="LOGIN"/>
+        <result property="name" column="LOGIN"/>
         <result property="email" column="EMAIL"/>
     </resultMap>
 
